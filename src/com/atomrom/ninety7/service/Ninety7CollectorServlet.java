@@ -26,7 +26,7 @@ public class Ninety7CollectorServlet extends HttpServlet {
 				
 		Entity visit = new Entity("Visit");
 		visit.setProperty("timestamp",System.currentTimeMillis());
-		visit.setProperty("urlVisited", urlVisited);
+		visit.setProperty("url", urlVisited);
 		visit.setProperty("visitDuration", visitDuration);
 		visit.setProperty("title", new Text(title));
 		visit.setProperty("content", new Text(content));

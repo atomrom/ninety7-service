@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+a:link {
+	color: #FF0000;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #00FF00;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #FF00FF;
+	text-decoration: none;
+}
+
+a:active {
+	color: #0000FF;
+	text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+
+
+	<div>
+		<div id="pageTileDiv"
+			style="background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;">
+
+			<h2 id="pageTitle">
+				<a
+					href="http://index.hu/x.php?id=inxcl&amp;url=http%3A%2F%2Findex.hu%2Fbelfold%2F2014%2F12%2F11%2Fpedig_a_fidesz_csak_most_jon_az_igazan_nepszerutlen_dolgokkal%2F">London</a>
+			</h2>
+
+			<p id="pageAbstract">London is the capital city of England. It is
+				the most populous city in the United Kingdom, with a metropolitan
+				area of over 13 million inhabitants.</p>
+
+			<p>Standing on the River Thames, London has been a major
+				settlement for two millennia, its history going back to its founding
+				by the Romans, who named it Londinium.</p>
+
+		</div>
+	</div>
+
+
+	<div id="digestBoard"></div>
+
+	<script
+		src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script>
+		var pageTileDivElement = document.getElementById("pageTileDiv");
+
+		for (i = 0; i < 10; ++i) {
+			$
+					.getJSON(
+							"http://1-dot-ninety7-service.appspot.com/digest",
+							function(data) {
+								var x = document.createElement("div");
+								x
+										.setAttribute(
+												"style",
+												"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
+
+								var titleElement = document.createElement("h2");
+								var aNode = document.createElement("a");
+								aNode.title = data.title;
+								aNode.href = data.url;
+								var titleText = document
+										.createTextNode(data.title);
+								aNode.appendChild(titleText);
+								titleElement.appendChild(aNode);
+								x.appendChild(titleElement);
+
+								var abstractElement = document
+										.createElement("p");
+								var abstractTextNode = document
+										.createTextNode(data.abstract);
+								abstractElement.appendChild(abstractTextNode);
+								x.appendChild(abstractElement);
+
+								document.getElementById("digestBoard")
+										.appendChild(x);
+							});
+
+		}
+	</script>
+
+</body>
+</html>
