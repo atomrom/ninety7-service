@@ -2,7 +2,7 @@
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
-	
+
 	<servlet>
 		<servlet-name>collector</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.Ninety7CollectorServlet</servlet-class>
@@ -11,7 +11,7 @@
 		<servlet-name>collector</servlet-name>
 		<url-pattern>/collector</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet>
 		<servlet-name>digest</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.DigestServlet</servlet-class>
@@ -21,4 +21,23 @@
 		<url-pattern>/digest</url-pattern>
 	</servlet-mapping>
 	
+	<servlet>
+		<servlet-name>finder</servlet-name>
+		<servlet-class>com.atomrom.ninety7.service.FinderServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>finder</servlet-name>
+		<url-pattern>/cron/finder</url-pattern>
+	</servlet-mapping>
+	
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>cron</web-resource-name>
+			<url-pattern>/cron/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
+
 </web-app>

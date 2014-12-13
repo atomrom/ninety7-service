@@ -32,31 +32,45 @@ public class DigestServlet extends HttpServlet {
 		resp.setContentType("application/json");
 		resp.setHeader("Cache-Control", "no-cache");
 
-		DigestItem digestItem = getDigestItem();		
-		log.finest(digestItem.toString());
-		
-		try {
-			JSONObject digestItemJson = new JSONObject();
-			digestItemJson.put("url", digestItem.url);
-			digestItemJson.put("title", digestItem.title);
-			digestItemJson.put("abstract", digestItem.abstr);
-			digestItemJson.write(resp.getWriter());
-		} catch (JSONException e) {
-			log.log(Level.SEVERE, "Could not create response Json object.", e);
-		}
+		DigestItem digestItem = getDigestItem();
+		if (digestItem != null) {
+			log.fine(digestItem.toString());
 
+			try {
+				JSONObject digestItemJson = new JSONObject();
+				digestItemJson.put("url", digestItem.url);
+				digestItemJson.put("title", digestItem.title);
+				digestItemJson.put("abstract", digestItem.abstr);
+
+				digestItemJson.write(resp.getWriter());
+				
+				log.log(Level.INFO, "Json:" + digestItemJson);
+			} catch (JSONException e) {
+				log.log(Level.SEVERE, "Could not create response Json object.",
+						e);
+			}
+		} else {
+			log.log(Level.INFO, "No digest item has been found.");
+		}
 	}
 
 	private DigestItem getDigestItem() {
 		DatastoreService datastore = DatastoreServiceFactory
 				.getDatastoreService();
-		Query query = new Query("Visit");
-		List<Entity> visits = datastore.prepare(query).asList(
+		Query query = new Query("DigestItem");
+		List<Entity> digestItems = datastore.prepare(query).asList(
 				FetchOptions.Builder.withLimit(10));
+		if (digestItems.isEmpty()) {
+			return null;
+		} else {
+			int rnd = new Random().nextInt(digestItems.size());
+			log.log(Level.INFO, "rnd:" + rnd);
 
-		int rnd = new Random().nextInt(visits.size());
-
-		return new DigestItem((String) visits.get(rnd).getProperty("url"), ((Text) visits.get(rnd).getProperty("title")).getValue(),
-				((Text) visits.get(rnd).getProperty("content")).getValue());
+			return new DigestItem((String) digestItems.get(rnd).getProperty(
+					"url"),
+					((Text) digestItems.get(rnd).getProperty("title"))
+							.getValue(), ((Text) digestItems.get(rnd)
+							.getProperty("abstract")).getValue());
+		}
 	}
 }

@@ -2,6 +2,7 @@
 <html>
 
 <head>
+<meta charset="utf-8">
 <style>
 a:link {
 	color: #FF0000;
@@ -48,15 +49,14 @@ a:active {
 		</div>
 	</div>
 
-
 	<div id="digestBoard"></div>
 
 	<script
 		src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<script>
+	<script charset="UTF-8">
 		var pageTileDivElement = document.getElementById("pageTileDiv");
 
-		for (i = 0; i < 10; ++i) {
+		for (i = 0; i < 100; ++i) {
 			$
 					.getJSON(
 							"http://1-dot-ninety7-service.appspot.com/digest",
