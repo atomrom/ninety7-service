@@ -84,6 +84,16 @@ a:active {
 								abstractElement.appendChild(abstractTextNode);
 								x.appendChild(abstractElement);
 
+								if (data.keywords != undefined) {
+									var keywordsElement = document
+											.createElement("p");
+									var keywordsTextNode = document
+											.createTextNode(data.keywords);
+									keywordsElement
+											.appendChild(keywordsTextNode);
+									x.appendChild(keywordsElement);
+								}
+
 								document.getElementById("digestBoard")
 										.appendChild(x);
 							});

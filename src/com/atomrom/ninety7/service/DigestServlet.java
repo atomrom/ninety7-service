@@ -41,9 +41,10 @@ public class DigestServlet extends HttpServlet {
 				digestItemJson.put("url", digestItem.url);
 				digestItemJson.put("title", digestItem.title);
 				digestItemJson.put("abstract", digestItem.abstr);
+				digestItemJson.put("keywords", digestItem.keywords);
 
 				digestItemJson.write(resp.getWriter());
-				
+
 				log.log(Level.INFO, "Json:" + digestItemJson);
 			} catch (JSONException e) {
 				log.log(Level.SEVERE, "Could not create response Json object.",
@@ -66,11 +67,12 @@ public class DigestServlet extends HttpServlet {
 			int rnd = new Random().nextInt(digestItems.size());
 			log.log(Level.INFO, "rnd:" + rnd);
 
-			return new DigestItem((String) digestItems.get(rnd).getProperty(
-					"url"),
-					((Text) digestItems.get(rnd).getProperty("title"))
-							.getValue(), ((Text) digestItems.get(rnd)
-							.getProperty("abstract")).getValue());
+			Entity digestEntity = digestItems.get(rnd);
+
+			return new DigestItem((String) digestEntity.getProperty("url"),
+					((Text) digestEntity.getProperty("title")).getValue(),
+					((Text) digestEntity.getProperty("abstract")).getValue(),
+					(String) digestEntity.getProperty("keywords"));
 		}
 	}
 }

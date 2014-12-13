@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
@@ -36,6 +35,9 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.Filter;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Text;
 import com.google.gson.Gson;
 
@@ -43,8 +45,6 @@ import com.google.gson.Gson;
 public class FinderServlet extends HttpServlet {
 	private static final Logger log = Logger.getLogger(FinderServlet.class
 			.getName());
-
-	private static Random random = new Random();
 
 	private static final String GOOGLE_SEARCH_URL = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=";
 	private static final String CHARSET = "UTF-8";
@@ -63,7 +63,7 @@ public class FinderServlet extends HttpServlet {
 
 				Integer c = dictionary.get(w);
 				c = (c == null ? 1 : c.intValue() + 1);
-				
+
 				dictionary.put(w, c);
 			}
 
@@ -107,6 +107,8 @@ public class FinderServlet extends HttpServlet {
 				digestItem.setProperty("title", new Text(result.getTitle()));
 				digestItem.setProperty("abstract",
 						new Text(getAbstract(result.getUrl())));
+				digestItem
+						.setProperty("keywords", toKeywordsString(queryWords));
 
 				DatastoreService datastore = DatastoreServiceFactory
 						.getDatastoreService();
@@ -154,18 +156,20 @@ public class FinderServlet extends HttpServlet {
 		return text;
 	}
 
-	private ResponseData searchForSimilar(Set<String> queryWords)
-			throws IOException {
-		StringBuilder search = new StringBuilder();
-		for (String queryWord : queryWords) {
-			search.append(queryWord);
-			search.append(' ');
+	private String toKeywordsString(Set<String> wordSet) {
+		StringBuilder sb = new StringBuilder();
+		for (String queryWord : wordSet) {
+			sb.append(queryWord);
+			sb.append(' ');
 		}
 
-		
+		return sb.toString().trim();
+	}
 
+	private ResponseData searchForSimilar(Set<String> queryWords)
+			throws IOException {
 		return submitSearch(GOOGLE_SEARCH_URL
-				+ URLEncoder.encode(search.toString(), CHARSET));
+				+ URLEncoder.encode(toKeywordsString(queryWords), CHARSET));
 	}
 
 	private ResponseData submitSearch(String searchUrl)
@@ -184,14 +188,20 @@ public class FinderServlet extends HttpServlet {
 	private VisitedPage getVisitedPage() {
 		DatastoreService datastore = DatastoreServiceFactory
 				.getDatastoreService();
-		Query query = new Query("Visit");
+
+		Filter propertyFilter = new FilterPredicate("timestamp",
+				FilterOperator.GREATER_THAN_OR_EQUAL,
+				System.currentTimeMillis() - 5 * 10 * 1000); // 10 minutes
+																// window
+
+		Query query = new Query("Visit").setFilter(propertyFilter);
 		List<Entity> visitedPages = datastore.prepare(query).asList(
 				FetchOptions.Builder.withLimit(15));
 		if (visitedPages.isEmpty()) {
 			return null;
 		} else {
-			int rnd = random.nextInt(visitedPages.size());
-			Entity pageEntity = visitedPages.get(rnd);
+			Collections.sort(visitedPages, new EntityComparator());
+			Entity pageEntity = visitedPages.get(0);
 
 			return new VisitedPage((Integer) pageEntity.getProperty("id"),
 					(String) pageEntity.getProperty("url"),
@@ -220,6 +230,15 @@ public class FinderServlet extends HttpServlet {
 		@Override
 		public int compare(Word o1, Word o2) {
 			return (int) Math.signum(o2.count - o1.count);
+		}
+
+	}
+
+	class EntityComparator implements Comparator<Entity> {
+		@Override
+		public int compare(Entity e1, Entity e2) {
+			return (int) Math.signum((Long) (e2.getProperty("visitDuration"))
+					- (Long) (e1.getProperty("visitDuration")));
 		}
 
 	}
