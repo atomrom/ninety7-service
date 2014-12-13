@@ -35,10 +35,12 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Text;
+import com.google.appengine.api.users.User;
 import com.google.gson.Gson;
 
 @SuppressWarnings("serial")
@@ -54,54 +56,68 @@ public class FinderServlet extends HttpServlet {
 			throws IOException {
 
 		VisitedPage visitedPage = getVisitedPage();
-		if (visitedPage != null) {
-			HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+		if (visitedPage == null) {
+			log.log(Level.INFO, "No fresh visited page.");
+			return;
+		}
 
-			StringTokenizer tokenizer = new StringTokenizer(visitedPage.content);
-			while (tokenizer.hasMoreTokens()) {
-				String w = tokenizer.nextToken();
+		HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
 
-				Integer c = dictionary.get(w);
-				c = (c == null ? 1 : c.intValue() + 1);
+		StringTokenizer tokenizer = new StringTokenizer(visitedPage.content);
+		while (tokenizer.hasMoreTokens()) {
+			String w = tokenizer.nextToken();
 
-				dictionary.put(w, c);
-			}
+			Integer c = dictionary.get(w);
+			c = (c == null ? 1 : c.intValue() + 1);
 
-			ArrayList<Word> sortedHistogram = new ArrayList<Word>(
-					dictionary.size());
-			for (Entry<String, Integer> entry : dictionary.entrySet()) {
-				sortedHistogram.add(new Word(entry.getKey(), entry.getValue()));
-			}
-			dictionary = null;
+			dictionary.put(w, c);
+		}
 
-			Collections.sort(sortedHistogram, new WordComparator());
-			Set<String> queryWords = new TreeSet<String>();
+		ArrayList<Word> sortedHistogram = new ArrayList<Word>(dictionary.size());
+		for (Entry<String, Integer> entry : dictionary.entrySet()) {
+			sortedHistogram.add(new Word(entry.getKey(), entry.getValue()));
+		}
+		dictionary = null;
 
-			int maxCount = 5;
-			int i = 0;
-			for (Word histogramWord : sortedHistogram) {
-				if (histogramWord.word.length() > 3) {
-					queryWords.add(histogramWord.word);
-					if (++i >= maxCount) {
-						break;
-					}
+		Collections.sort(sortedHistogram, new WordComparator());
+		Set<String> queryWords = new TreeSet<String>();
+
+		int maxCount = 5;
+		int i = 0;
+		for (Word histogramWord : sortedHistogram) {
+			if (histogramWord.word.length() > 3) {
+				queryWords.add(histogramWord.word);
+				if (++i >= maxCount) {
+					break;
 				}
 			}
+		}
 
-			log.log(Level.INFO, sortedHistogram.toString());
-			log.log(Level.INFO, "QUERY: " + queryWords.toString());
+		log.log(Level.INFO, sortedHistogram.toString());
+		log.log(Level.INFO, "QUERY: " + queryWords.toString());
 
-			ResponseData searchResults = searchForSimilar(queryWords);
-			List<Result> results = searchResults.getResults();
+		ResponseData searchResults = searchForSimilar(queryWords);
+		List<Result> results = searchResults.getResults();
 
-			if (!results.isEmpty()) {
-				Result result = results.get(0);
+		if (!results.isEmpty()) {
+			int j = 0;
+			for (Result result : results) {
+				if (++j > 5) {
+					break;
+				}
+
+				if (isDigestExist(visitedPage.user, result.getUrl())) {
+					log.log(Level.INFO, "Digest exists: " + result.getUrl());
+
+					continue;
+				}
 
 				log.log(Level.INFO, result.getTitle());
 				log.log(Level.INFO, result.getUrl());
 
 				Entity digestItem = new Entity("DigestItem");
 				digestItem.setProperty("timestamp", System.currentTimeMillis());
+				digestItem.setProperty("user", visitedPage.user);
 				digestItem.setProperty("url", result.getUrl());
 				digestItem.setProperty("visitedPageId", visitedPage.id);
 				digestItem.setProperty("title", new Text(result.getTitle()));
@@ -113,11 +129,26 @@ public class FinderServlet extends HttpServlet {
 				DatastoreService datastore = DatastoreServiceFactory
 						.getDatastoreService();
 				datastore.put(digestItem);
-			} else {
-				log.log(Level.INFO, "Nothing has been found.");
 			}
+		} else {
+			log.log(Level.INFO, "Nothing has been found.");
 		}
 
+	}
+
+	private boolean isDigestExist(User user, String url) {
+		DatastoreService datastore = DatastoreServiceFactory
+				.getDatastoreService();
+
+		Filter userFilter = new FilterPredicate("user", FilterOperator.EQUAL,
+				user);
+		Filter urlFilter = new FilterPredicate("url", FilterOperator.EQUAL, url);
+
+		Filter filter = CompositeFilterOperator.and(urlFilter, userFilter);
+
+		Query query = new Query("DigestItem").setFilter(filter);
+		return datastore.prepare(query).countEntities(
+				FetchOptions.Builder.withLimit(1)) > 0;
 	}
 
 	private String getAbstract(String pageUrl) {
@@ -189,12 +220,12 @@ public class FinderServlet extends HttpServlet {
 		DatastoreService datastore = DatastoreServiceFactory
 				.getDatastoreService();
 
-		Filter propertyFilter = new FilterPredicate("timestamp",
+		Filter filter = new FilterPredicate("timestamp",
 				FilterOperator.GREATER_THAN_OR_EQUAL,
 				System.currentTimeMillis() - 5 * 10 * 1000); // 10 minutes
 																// window
 
-		Query query = new Query("Visit").setFilter(propertyFilter);
+		Query query = new Query("Visit").setFilter(filter);
 		List<Entity> visitedPages = datastore.prepare(query).asList(
 				FetchOptions.Builder.withLimit(15));
 		if (visitedPages.isEmpty()) {
@@ -204,6 +235,7 @@ public class FinderServlet extends HttpServlet {
 			Entity pageEntity = visitedPages.get(0);
 
 			return new VisitedPage((Integer) pageEntity.getProperty("id"),
+					(User) pageEntity.getProperty("user"),
 					(String) pageEntity.getProperty("url"),
 					((Text) pageEntity.getProperty("title")).getValue(),
 					((Text) pageEntity.getProperty("content")).getValue());

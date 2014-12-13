@@ -56,46 +56,52 @@ a:active {
 	<script charset="UTF-8">
 		var pageTileDivElement = document.getElementById("pageTileDiv");
 
-		for (i = 0; i < 100; ++i) {
+		for (i = 0; i < 5; ++i) {
 			$
 					.getJSON(
 							"http://1-dot-ninety7-service.appspot.com/digest",
 							function(data) {
-								var x = document.createElement("div");
-								x
-										.setAttribute(
-												"style",
-												"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
+								for (j = 0; j < data.length; ++j) {
+									digestItem = data[j];
 
-								var titleElement = document.createElement("h2");
-								var aNode = document.createElement("a");
-								aNode.title = data.title;
-								aNode.href = data.url;
-								var titleText = document
-										.createTextNode(data.title);
-								aNode.appendChild(titleText);
-								titleElement.appendChild(aNode);
-								x.appendChild(titleElement);
+									var x = document.createElement("div");
+									x
+											.setAttribute(
+													"style",
+													"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
 
-								var abstractElement = document
-										.createElement("p");
-								var abstractTextNode = document
-										.createTextNode(data.abstract);
-								abstractElement.appendChild(abstractTextNode);
-								x.appendChild(abstractElement);
+									var titleElement = document
+											.createElement("h2");
+									var aNode = document.createElement("a");
+									aNode.title = digestItem.title;
+									aNode.href = digestItem.url;
+									var titleText = document
+											.createTextNode(digestItem.title);
+									aNode.appendChild(titleText);
+									titleElement.appendChild(aNode);
+									x.appendChild(titleElement);
 
-								if (data.keywords != undefined) {
-									var keywordsElement = document
+									var abstractElement = document
 											.createElement("p");
-									var keywordsTextNode = document
-											.createTextNode(data.keywords);
-									keywordsElement
-											.appendChild(keywordsTextNode);
-									x.appendChild(keywordsElement);
-								}
+									var abstractTextNode = document
+											.createTextNode(digestItem.abstract);
+									abstractElement
+											.appendChild(abstractTextNode);
+									x.appendChild(abstractElement);
 
-								document.getElementById("digestBoard")
-										.appendChild(x);
+									if (digestItem.keywords != undefined) {
+										var keywordsElement = document
+												.createElement("p");
+										var keywordsTextNode = document
+												.createTextNode(digestItem.keywords);
+										keywordsElement
+												.appendChild(keywordsTextNode);
+										x.appendChild(keywordsElement);
+									}
+
+									document.getElementById("digestBoard")
+											.appendChild(x);
+								}
 							});
 
 		}

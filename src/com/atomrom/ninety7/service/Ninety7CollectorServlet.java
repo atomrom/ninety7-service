@@ -10,14 +10,17 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
+import com.google.appengine.api.users.User;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 
 @SuppressWarnings("serial")
 public class Ninety7CollectorServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		// UserService userService = UserServiceFactory.getUserService();
-		// User user = userService.getCurrentUser();
+		 UserService userService = UserServiceFactory.getUserService();
+		 User user = userService.getCurrentUser();
 
 		String urlVisited = req.getParameter("urlVisited");
 		String visitDuration = req.getParameter("visitDuration");
@@ -25,6 +28,7 @@ public class Ninety7CollectorServlet extends HttpServlet {
 		String content = req.getParameter("content");
 				
 		Entity visit = new Entity("Visit");
+		visit.setProperty("user", user);
 		visit.setProperty("timestamp",System.currentTimeMillis());
 		visit.setProperty("url", urlVisited);
 		visit.setProperty("visitDuration", Integer.parseInt(visitDuration));
