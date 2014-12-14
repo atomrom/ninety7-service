@@ -1,8 +1,8 @@
-package com.atomrom.ninety7.service;
+package com.atomrom.ninety7.service.search;
 
 import java.util.List;
 
-public class GoogleResults {
+public class GoogleSearchResults {
 
 	private ResponseData responseData;
 

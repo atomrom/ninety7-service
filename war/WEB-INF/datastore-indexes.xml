@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <datastore-indexes autoGenerate="true">
-	
+
 	<datastore-index kind="Visit" ancestor="true" source="manual">
-        <property name="timestamp" direction="desc"/>
-    </datastore-index>
-    
+		<property name="timestamp" direction="desc" />
+	</datastore-index>
+
+	<datastore-index kind="DigestItem" ancestor="false"
+		source="manual">
+		<property name="user" direction="asc" />
+		<property name="timestamp" direction="asc" />
+	</datastore-index>
 </datastore-indexes>
