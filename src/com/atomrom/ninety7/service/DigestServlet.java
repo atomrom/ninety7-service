@@ -31,7 +31,7 @@ public class DigestServlet extends HttpServlet {
 		UserService userService = UserServiceFactory.getUserService();
 		User currentUser = userService.getCurrentUser();
 
-		resp.setContentType("application/json");
+		resp.setContentType("application/json; charset=utf-8");
 		resp.setHeader("Cache-Control", "no-cache");
 
 		if (currentUser == null) {

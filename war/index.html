@@ -2,7 +2,7 @@
 <html>
 
 <head>
-<meta charset="utf-8">
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 <style>
 a:link {
 	color: #FF0000;
@@ -27,7 +27,7 @@ a:active {
 </head>
 
 <body>
- 	<iframe src="http://1-dot-ninety7-service.appspot.com/login"></iframe>
+	<iframe src="http://1-dot-ninety7-service.appspot.com/login"></iframe>
 
 	<div>
 		<div id="pageTileDiv"
@@ -35,12 +35,13 @@ a:active {
 
 			<h2 id="pageTitle">
 				<a
-					href="http://index.hu/x.php?id=inxcl&amp;url=http%3A%2F%2Findex.hu%2Fbelfold%2F2014%2F12%2F11%2Fpedig_a_fidesz_csak_most_jon_az_igazan_nepszerutlen_dolgokkal%2F">London</a>
+					href="http://index.hu/x.php?id=inxcl&amp;url=http%3A%2F%2Findex.hu%2Fbelfold%2F2014%2F12%2F11%2Fpedig_a_fidesz_csak_most_jon_az_igazan_nepszerutlen_dolgokkal%2F">Ló-erő,
+					érted?</a>
 			</h2>
 
-			<p id="pageAbstract">London is the capital city of England. It is
-				the most populous city in the United Kingdom, with a metropolitan
-				area of over 13 million inhabitants.</p>
+			<p id="pageAbstract">Ló-erő, érted? London is the capital city of
+				England. It is the most populous city in the United Kingdom, with a
+				metropolitan area of over 13 million inhabitants.</p>
 
 			<p>Standing on the River Thames, London has been a major
 				settlement for two millennia, its history going back to its founding
@@ -53,57 +54,59 @@ a:active {
 
 	<script
 		src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<script charset="UTF-8">
+	<script charset="utf-8">
 		var pageTileDivElement = document.getElementById("pageTileDiv");
 
 		for (i = 0; i < 5; ++i) {
 			$
-					.getJSON(
-							"http://1-dot-ninety7-service.appspot.com/digest",
-							function(data) {
-								for (j = 0; j < data.length; ++j) {
-									digestItem = data[j];
+					.ajax({
+						dataType : "json",
+						url : "http://1-dot-ninety7-service.appspot.com/digest",
+						contentType : "application/json; charset=utf-8",
+						success : function(data) {
+							for (j = 0; j < data.length; ++j) {
+								digestItem = data[j];
 
-									var x = document.createElement("div");
-									x
-											.setAttribute(
-													"style",
-													"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
+								var x = document.createElement("div");
+								x
+										.setAttribute(
+												"style",
+												"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
 
-									var titleElement = document
-											.createElement("h2");
-									var aNode = document.createElement("a");
-									aNode.title = digestItem.title;
-									aNode.href = digestItem.url;
-									var titleText = document
-											.createTextNode(digestItem.title);
-									aNode.appendChild(titleText);
-									titleElement.appendChild(aNode);
-									x.appendChild(titleElement);
+								var titleElement = document.createElement("h2");
+								var aNode = document.createElement("a");
+								aNode.href = digestItem.url;
+								var titleText = document
+										.createTextNode(digestItem.title);
+								aNode.appendChild(titleText);
+								titleElement.appendChild(aNode);
+								x.appendChild(titleElement);
 
-									var abstractElement = document
+								console.log("title:", digestItem.title);
+								console.log("abstract:", digestItem.abstract);
+
+								var abstractElement = document
+										.createElement("p");
+								var abstractTextNode = document
+										.createTextNode(digestItem.abstract);
+								abstractElement.appendChild(abstractTextNode);
+								x.appendChild(abstractElement);
+
+								if (digestItem.keywords != undefined) {
+									var keywordsElement = document
 											.createElement("p");
-									var abstractTextNode = document
-											.createTextNode(digestItem.abstract);
-									abstractElement
-											.appendChild(abstractTextNode);
-									x.appendChild(abstractElement);
-
-									if (digestItem.keywords != undefined) {
-										var keywordsElement = document
-												.createElement("p");
-										var keywordsTextNode = document
-												.createTextNode(digestItem.keywords);
-										keywordsElement
-												.appendChild(keywordsTextNode);
-										x.appendChild(keywordsElement);
-									}
-
-									document.getElementById("digestBoard")
-											.appendChild(x);
+									var keywordsTextNode = document
+											.createTextNode(digestItem.keywords);
+									keywordsElement
+											.appendChild(keywordsTextNode);
+									x.appendChild(keywordsElement);
 								}
-							});
 
+								document.getElementById("digestBoard")
+										.appendChild(x);
+							}
+						}
+					});
 		}
 	</script>
 
