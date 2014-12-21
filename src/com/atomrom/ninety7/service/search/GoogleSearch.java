@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.atomrom.ninety7.service.search.GoogleSearchResults.ResponseData;
-import com.atomrom.ninety7.service.util.TextAnalyzer;
+import com.atomrom.ninety7.service.util.TextUtil;
 import com.google.gson.Gson;
 
 public class GoogleSearch {
@@ -26,7 +26,7 @@ public class GoogleSearch {
 	public static final ResponseData searchForSimilar(Set<String> queryWords)
 			throws IOException {
 		return submitSearch(GOOGLE_SEARCH_URL
-				+ URLEncoder.encode(TextAnalyzer.setToString(queryWords), CHARSET));
+				+ URLEncoder.encode(TextUtil.setToString(queryWords), CHARSET));
 	}
 
 	public static final ResponseData submitSearch(String searchUrl)

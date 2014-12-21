@@ -2,6 +2,8 @@ package com.atomrom.ninety7.service.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -17,6 +19,11 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
 public class VisitDao {
+	private static final Logger logger = Logger.getLogger(VisitDao.class
+			.getName());
+
+	public static final String META_KEYWORDS = "metaKeywords";
+	public static final String META_DESCRIPTION = "metaDescription";
 
 	public static final void create(Visit visit) {
 		UserService userService = UserServiceFactory.getUserService();
@@ -29,6 +36,14 @@ public class VisitDao {
 		visitEntity.setProperty("visitDuration", visit.duration);
 		visitEntity.setProperty("title", new Text(visit.title));
 		visitEntity.setProperty("content", new Text(visit.content));
+		if (visit.metaKeywords != null) {
+			visitEntity
+					.setProperty(META_KEYWORDS, new Text(visit.metaKeywords));
+		}
+		if (visit.metaDescription != null) {
+			visitEntity.setProperty(META_DESCRIPTION, new Text(
+					visit.metaDescription));
+		}
 
 		DatastoreService datastore = DatastoreServiceFactory
 				.getDatastoreService();
@@ -54,6 +69,30 @@ public class VisitDao {
 		}
 
 		return rv;
+	}
+
+	public void deleteOldItems(long maxAgeInMillis) {
+		logger.log(Level.FINE, "deleteOldEntries(" + maxAgeInMillis + ")");
+
+		Filter filter = new FilterPredicate("timestamp",
+				FilterOperator.LESS_THAN_OR_EQUAL, System.currentTimeMillis()
+						- maxAgeInMillis);
+
+		Query query = new Query("Visit").setFilter(filter);
+
+		DatastoreService datastore = DatastoreServiceFactory
+				.getDatastoreService();
+		List<Entity> visitedPages = datastore.prepare(query).asList(
+				FetchOptions.Builder.withDefaults());
+		int count = 0;
+		for (Entity entity : visitedPages) {
+			logger.log(Level.FINE, "delete:" + entity.getKey());
+
+			datastore.delete(entity.getKey());
+			++count;
+		}
+
+		logger.log(Level.INFO, "Number of items deleted: " + count);
 	}
 
 }

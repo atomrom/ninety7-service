@@ -10,16 +10,27 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import com.atomrom.ninety7.service.search.Finder;
 
 public class TextAnalyzer {
 
+	private static final Logger logger = Logger.getLogger(TextAnalyzer.class
+			.getName());
+
 	private static final int MIN_WORD_LENGTH = 3;
 	private static final int WORD_COUNT = 5;
+
+	private static final int ABSTRACT_MAX_LENGTH = 280;
 
 	private static final String CHARSET = "UTF-8";
 
@@ -72,10 +83,25 @@ public class TextAnalyzer {
 		return sortedHistogram;
 	}
 
-	public static final String extractAbstract(String pageUrl)
-			throws IOException {
+	public static final String extractAbstract(String pageUrl,
+			Set<String> queryWords) throws IOException {
 		String text = "";
 
+		String html = donwloadPage(pageUrl);
+
+		Element element = findDeepestElementContainingKeywords(Jsoup
+				.parse(html).body(), queryWords);
+
+		text = element.text();
+
+		if (text.length() > ABSTRACT_MAX_LENGTH) {
+			text = text.substring(0, ABSTRACT_MAX_LENGTH);
+		}
+
+		return text;
+	}
+
+	private static String donwloadPage(String pageUrl) throws IOException {
 		StringBuffer html = new StringBuffer();
 
 		URL url = new URL(pageUrl);
@@ -92,23 +118,57 @@ public class TextAnalyzer {
 			inputStream.close();
 		}
 
-		text = Jsoup.parse(html.toString()).body().text();
-
-		if (text.length() > 280) {
-			text = text.substring(0, 280);
-		}
-
-		return text;
+		return html.toString();
 	}
 
-	public static final String setToString(Set<String> wordSet) {
-		StringBuilder sb = new StringBuilder();
-		for (String queryWord : wordSet) {
-			sb.append(queryWord);
-			sb.append(' ');
+	private static Element findDeepestElementContainingKeywords(
+			Element rootElement, Set<String> queryWords) {
+		Elements es = rootElement.getElementsContainingOwnText(queryWords
+				.iterator().next());
+		// Elements es =
+		// rootElement.getElementsContainingOwnText(TextUtil.setToString(queryWords));
+		if (!es.isEmpty()) {
+			logger.log(Level.INFO, "Found a sub-element!");
+			return es.get(0);
 		}
 
-		return sb.toString().trim();
+		return rootElement;
+
+		//
+		// Elements es = rootElement.getAllElements();
+		//
+		// if (es.isEmpty()) {
+		// if (containsAll(rootElement.text(), queryWords)) {
+		// return rootElement;
+		// }
+		// }
+		//
+		// for (int i = 0; i < es.size(); ++i) {
+		// Element found = findDeepestElementContainingKeywords(es.get(i),
+		// queryWords);
+		// if (found != null) {
+		// return found;
+		// }
+		// }
+		//
+		// if (containsAll(rootElement.text(), queryWords)) {
+		// return rootElement;
+		// }
+		//
+		// return null;
+	}
+
+	private static boolean containsAll(String text, Set<String> queryWords) {
+		if (text == null) {
+			return false;
+		}
+
+		for (String qw : queryWords) {
+			if (!text.contains(qw)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	static class Word {

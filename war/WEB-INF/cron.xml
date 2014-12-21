@@ -5,5 +5,14 @@
     <description>Find pages similar to the visited pages</description>
     <schedule>every 2 minutes</schedule>
   </cron>
-  
+  <cron>
+    <url>/cron/digest-housekeeper</url>
+    <description>Delete outdated digest entries</description>
+    <schedule>every 2 minutes</schedule>
+  </cron>
+  <cron>
+    <url>/cron/visit-housekeeper</url>
+    <description>Delete outdated visit entries</description>
+    <schedule>every 2 minutes</schedule>
+  </cron>
 </cronentries>

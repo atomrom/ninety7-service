@@ -11,6 +11,9 @@ import com.atomrom.ninety7.service.dao.VisitDao;
 
 @SuppressWarnings("serial")
 public class Ninety7CollectorServlet extends HttpServlet {
+	public static final String REQUEST_PARAM_META_KEYWORDS = "metaKeywords";
+	public static final String REQUEST_PARAM_META_DESCRIPTION = "metaDescription";
+
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {

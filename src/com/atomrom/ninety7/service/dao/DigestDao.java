@@ -2,20 +2,24 @@ package com.atomrom.ninety7.service.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.User;
 
 public class DigestDao {
+	private static final Logger logger = Logger.getLogger(DigestDao.class
+			.getName());
 
 	private static final int MAX_LIST_SIZE = 24;
 
@@ -80,4 +84,30 @@ public class DigestDao {
 		return datastore.prepare(query).countEntities(
 				FetchOptions.Builder.withLimit(1)) > 0;
 	}
+
+	public void deleteOldEntries(long maxAgeInMillis) {
+		logger.log(Level.FINE, "deleteOldEntries(" + maxAgeInMillis + ")");
+
+		Filter filter = new FilterPredicate("timestamp",
+				FilterOperator.LESS_THAN_OR_EQUAL,
+				System.currentTimeMillis() - maxAgeInMillis);
+
+		Query query = new Query("DigestItem").setFilter(filter);
+
+		DatastoreService datastore = DatastoreServiceFactory
+				.getDatastoreService();
+		List<Entity> visitedPages = datastore.prepare(query).asList(
+				FetchOptions.Builder.withDefaults());
+
+		int count = 0;
+		for (Entity entity : visitedPages) {
+			logger.log(Level.FINE, "delete:" + entity.getKey());
+
+			datastore.delete(entity.getKey());
+			++count;
+		}
+		
+		logger.log(Level.INFO, "Number of items deleted: " + count);
+	}
+
 }

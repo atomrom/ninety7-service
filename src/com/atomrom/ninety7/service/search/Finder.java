@@ -13,6 +13,7 @@ import com.atomrom.ninety7.service.dao.VisitDao;
 import com.atomrom.ninety7.service.search.GoogleSearchResults.ResponseData;
 import com.atomrom.ninety7.service.search.GoogleSearchResults.Result;
 import com.atomrom.ninety7.service.util.TextAnalyzer;
+import com.atomrom.ninety7.service.util.TextUtil;
 
 public class Finder {
 
@@ -22,15 +23,19 @@ public class Finder {
 	public void find() {
 		List<Visit> visitedPages = getVisitedPages();
 
-		for (Visit visit : visitedPages) {
-			if (visit == null) {
-				logger.log(Level.INFO, "No fresh visited page.");
-				return;
-			}
+		if (visitedPages.isEmpty()) {
+			logger.log(Level.INFO, "No fresh visited page.");
+			return;
+		}
 
+		for (Visit visit : visitedPages) {
 			logger.log(Level.INFO, "visitedPage:" + visit.url);
 
-			Set<String> queryWords = TextAnalyzer.getKeywords(visit.content);
+			Set<String> queryWords = TextUtil
+					.commaSeparatedListToSet(visit.metaKeywords);
+			if (queryWords.isEmpty()) {
+				queryWords = TextAnalyzer.getKeywords(visit.content);
+			}
 
 			try {
 				ResponseData searchResults = GoogleSearch
@@ -55,9 +60,9 @@ public class Finder {
 						logger.log(Level.INFO, result.getUrl());
 
 						DigestDao.create(visit.user, result.getUrl(), visit.id,
-								result.getTitle(),
-								getAbstract(result.getUrl()),
-								TextAnalyzer.setToString(queryWords));
+								TextUtil.htmlToText(result.getTitle()),
+								getAbstract(result.getUrl(), queryWords),
+								TextUtil.setToString(queryWords));
 					}
 				} else {
 					logger.log(Level.INFO, "Nothing has been found.");
@@ -69,9 +74,13 @@ public class Finder {
 		}
 	}
 
-	private String getAbstract(String pageUrl) {
+	private String getAbstract(String pageUrl, Set<String> queryWords) {
 		try {
-			return TextAnalyzer.extractAbstract(pageUrl);
+			String abstr = TextAnalyzer.extractAbstract(pageUrl, queryWords);
+			logger.log(Level.INFO, "Abstract extracted from " + pageUrl + ": "
+					+ abstr);
+
+			return abstr;
 		} catch (MalformedURLException e) {
 			logger.log(Level.WARNING, "Could not retrieve atricle.", e);
 		} catch (IOException e) {
@@ -82,13 +91,7 @@ public class Finder {
 	}
 
 	private List<Visit> getVisitedPages() {
-		List<Visit> visits = VisitDao.findYoungerThan(2 * 60 * 1000);
-
-		if (visits.isEmpty()) {
-			return null;
-		}
-
-		return visits;
+		return VisitDao.findYoungerThan(2 * 60 * 1000);
 	}
 
 }

@@ -39,6 +39,24 @@
 		<url-pattern>/cron/finder</url-pattern>
 	</servlet-mapping>
 	
+	<servlet>
+		<servlet-name>digest-housekeeper</servlet-name>
+		<servlet-class>com.atomrom.ninety7.service.DigestHousekeeperServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>digest-housekeeper</servlet-name>
+		<url-pattern>/cron/digest-housekeeper</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>visit-housekeeper</servlet-name>
+		<servlet-class>com.atomrom.ninety7.service.VisitHousekeeperServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>visit-housekeeper</servlet-name>
+		<url-pattern>/cron/visit-housekeeper</url-pattern>
+	</servlet-mapping>
+	
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>cron</web-resource-name>
