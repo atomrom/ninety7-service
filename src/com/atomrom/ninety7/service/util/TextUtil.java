@@ -9,9 +9,12 @@ import org.jsoup.Jsoup;
 
 public class TextUtil {
 
-	public static final String META_KEYWORDS_DELIM = ",";
+	public static final String META_KEYWORDS_DELIM = ", ";
 
-	public static Set<String> commaSeparatedListToSet(String metaKeywords) {
+	public static final String TRIMMED_TEXT_SUFFIX = "...";
+
+	public static Set<String> commaSeparatedListToSet(String metaKeywords,
+			int minWordLength) {
 		if (metaKeywords == null) {
 			return Collections.<String> emptySet();
 		}
@@ -21,7 +24,11 @@ public class TextUtil {
 		StringTokenizer st = new StringTokenizer(metaKeywords,
 				META_KEYWORDS_DELIM);
 		while (st.hasMoreTokens()) {
-			rv.add(st.nextToken());
+			String word = st.nextToken();
+
+			if (minWordLength <= word.length()) {
+				rv.add(word);
+			}
 		}
 
 		return rv;
@@ -43,5 +50,30 @@ public class TextUtil {
 		}
 
 		return Jsoup.parse(html).text();
+	}
+
+	public static int countFoundWords(String text, Set<String> queryWords) {
+		int count = 0;
+
+		for (String qw : queryWords) {
+			if (text.toUpperCase().contains(qw.toUpperCase())) {
+				++count;
+			}
+		}
+
+		return count;
+	}
+
+	public static String trimText(String text, int maxLength) {
+		String rv;
+
+		if (text.length() > maxLength) {
+			rv = text.substring(0, maxLength);
+			rv += TRIMMED_TEXT_SUFFIX;
+		} else {
+			rv = text;
+		}
+
+		return rv;
 	}
 }

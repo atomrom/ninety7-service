@@ -26,6 +26,8 @@ public class VisitDao {
 	public static final String META_DESCRIPTION = "metaDescription";
 
 	public static final void create(Visit visit) {
+		logger.log(Level.INFO, "create(" + visit.toString() + ")");
+
 		UserService userService = UserServiceFactory.getUserService();
 		User user = userService.getCurrentUser();
 

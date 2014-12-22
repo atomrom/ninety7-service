@@ -20,6 +20,8 @@ public class Finder {
 	private static final Logger logger = Logger.getLogger(Finder.class
 			.getName());
 
+	public static final int MIN_QUERY_WORD_LENGTH = 3;
+
 	public void find() {
 		List<Visit> visitedPages = getVisitedPages();
 
@@ -31,8 +33,8 @@ public class Finder {
 		for (Visit visit : visitedPages) {
 			logger.log(Level.INFO, "visitedPage:" + visit.url);
 
-			Set<String> queryWords = TextUtil
-					.commaSeparatedListToSet(visit.metaKeywords);
+			Set<String> queryWords = TextUtil.commaSeparatedListToSet(
+					visit.metaKeywords, MIN_QUERY_WORD_LENGTH);
 			if (queryWords.isEmpty()) {
 				queryWords = TextAnalyzer.getKeywords(visit.content);
 			}
@@ -76,7 +78,8 @@ public class Finder {
 
 	private String getAbstract(String pageUrl, Set<String> queryWords) {
 		try {
-			String abstr = TextAnalyzer.extractAbstract(pageUrl, queryWords);
+			String abstr = new TextAnalyzer(pageUrl)
+					.extractAbstract(queryWords);
 			logger.log(Level.INFO, "Abstract extracted from " + pageUrl + ": "
 					+ abstr);
 
