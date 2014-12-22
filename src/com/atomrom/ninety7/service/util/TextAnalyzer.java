@@ -160,8 +160,6 @@ public class TextAnalyzer {
 			if (node instanceof Element) {
 				Element element = (Element) node;
 
-				// System.out.println(element.tagName());
-
 				if (!"p".equalsIgnoreCase(element.tagName())
 						&& !"a".equalsIgnoreCase(element.tagName())
 						&& !"strong".equalsIgnoreCase(element.tagName())

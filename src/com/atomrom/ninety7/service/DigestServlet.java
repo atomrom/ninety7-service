@@ -24,12 +24,16 @@ public class DigestServlet extends HttpServlet {
 
 	private static final long DAY_IN_MILLIS = 86400000l;
 
+	private String PAGE_NUM = "pageNum";
+
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
+	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 
 		UserService userService = UserServiceFactory.getUserService();
 		User currentUser = userService.getCurrentUser();
+
+		int pageNum = Integer.parseInt(req.getParameter(PAGE_NUM));
 
 		resp.setContentType("application/json; charset=utf-8");
 		resp.setHeader("Cache-Control", "no-cache");
@@ -38,13 +42,14 @@ public class DigestServlet extends HttpServlet {
 			logger.log(Level.INFO, "User is not logged in.");
 			return;
 		}
-		logger.log(Level.INFO, "Request from user: " + currentUser);
+		logger.log(Level.INFO, "Request from user: " + currentUser
+				+ ", pageNum: " + pageNum);
 
 		JSONArray digestItemArray = new JSONArray();
 
-		List<Digest> digestItems = DigestDao.get(currentUser, DAY_IN_MILLIS);
+		List<Digest> digestItems = DigestDao.get(currentUser, pageNum);
 		for (Digest digestItem : digestItems) {
-			logger.fine(digestItem.toString());
+			logger.log(Level.INFO, digestItem.toString());
 
 			try {
 				digestItemArray.put(digestItem.toJson());
@@ -56,8 +61,6 @@ public class DigestServlet extends HttpServlet {
 
 		if (!digestItems.isEmpty()) {
 			try {
-				logger.log(Level.INFO, "Json:" + digestItemArray);
-
 				digestItemArray.write(resp.getWriter());
 			} catch (JSONException e) {
 				logger.log(Level.SEVERE,

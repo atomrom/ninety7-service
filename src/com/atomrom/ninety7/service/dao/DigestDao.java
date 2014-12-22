@@ -23,8 +23,10 @@ public class DigestDao {
 
 	private static final int MAX_LIST_SIZE = 24;
 
+	private static final String RANK = "rank";
+
 	public static final void create(User user, String url, int visitedPageId,
-			String title, String abstr, String keywords) {
+			String title, String abstr, String keywords, int rank) {
 		Entity digestItem = new Entity("DigestItem");
 		digestItem.setProperty("timestamp", System.currentTimeMillis());
 		digestItem.setProperty("user", user);
@@ -33,13 +35,14 @@ public class DigestDao {
 		digestItem.setProperty("title", new Text(title));
 		digestItem.setProperty("abstract", new Text(abstr));
 		digestItem.setProperty("keywords", keywords);
+		digestItem.setProperty(RANK, rank);
 
 		DatastoreService datastore = DatastoreServiceFactory
 				.getDatastoreService();
 		datastore.put(digestItem);
 	}
 
-	public static final List<Digest> get(User user, long maxAgeInMillis) {
+	public static final List<Digest> get(User user, int pageNum) {
 		List<Digest> rv = new ArrayList<Digest>(10);
 
 		DatastoreService datastore = DatastoreServiceFactory
@@ -47,9 +50,8 @@ public class DigestDao {
 
 		Filter userFilter = new FilterPredicate("user", FilterOperator.EQUAL,
 				user);
-		Filter timestapmFlter = new FilterPredicate("timestamp",
-				FilterOperator.GREATER_THAN_OR_EQUAL,
-				System.currentTimeMillis() - maxAgeInMillis);
+		Filter timestapmFlter = new FilterPredicate(RANK, FilterOperator.EQUAL,
+				pageNum);
 
 		Filter filter = CompositeFilterOperator.and(timestapmFlter, userFilter);
 
@@ -62,7 +64,8 @@ public class DigestDao {
 			Digest digestItem = new Digest((String) entity.getProperty("url"),
 					((Text) entity.getProperty("title")).getValue(),
 					((Text) entity.getProperty("abstract")).getValue(),
-					(String) entity.getProperty("keywords"));
+					(String) entity.getProperty("keywords"),
+					(Long) entity.getProperty(RANK));
 
 			rv.add(digestItem);
 		}
@@ -89,8 +92,8 @@ public class DigestDao {
 		logger.log(Level.FINE, "deleteOldEntries(" + maxAgeInMillis + ")");
 
 		Filter filter = new FilterPredicate("timestamp",
-				FilterOperator.LESS_THAN_OR_EQUAL,
-				System.currentTimeMillis() - maxAgeInMillis);
+				FilterOperator.LESS_THAN_OR_EQUAL, System.currentTimeMillis()
+						- maxAgeInMillis);
 
 		Query query = new Query("DigestItem").setFilter(filter);
 
@@ -106,7 +109,7 @@ public class DigestDao {
 			datastore.delete(entity.getKey());
 			++count;
 		}
-		
+
 		logger.log(Level.INFO, "Number of items deleted: " + count);
 	}
 

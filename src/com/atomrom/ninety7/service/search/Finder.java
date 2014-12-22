@@ -43,31 +43,37 @@ public class Finder {
 				ResponseData searchResults = GoogleSearch
 						.searchForSimilar(queryWords);
 
+				if (searchResults == null) {
+					logger.log(Level.INFO, "Empty results.");
+					continue;
+				}
+
 				List<Result> results = searchResults.getResults();
-				if (!results.isEmpty()) {
-					int j = 0;
-					for (Result result : results) {
-						if (++j > 5) {
-							break;
-						}
-
-						if (DigestDao.doesExist(visit.user, result.getUrl())) {
-							logger.log(Level.INFO,
-									"Digest exists: " + result.getUrl());
-
-							continue;
-						}
-
-						logger.log(Level.INFO, result.getTitle());
-						logger.log(Level.INFO, result.getUrl());
-
-						DigestDao.create(visit.user, result.getUrl(), visit.id,
-								TextUtil.htmlToText(result.getTitle()),
-								getAbstract(result.getUrl(), queryWords),
-								TextUtil.setToString(queryWords));
-					}
-				} else {
+				if (results.isEmpty()) {
 					logger.log(Level.INFO, "Nothing has been found.");
+					continue;
+				}
+
+				int j = 0;
+				for (Result result : results) {
+					if (DigestDao.doesExist(visit.user, result.getUrl())) {
+						logger.log(Level.INFO,
+								"Digest exists: " + result.getUrl());
+
+						continue;
+					}
+
+					logger.log(Level.INFO, result.getTitle());
+					logger.log(Level.INFO, result.getUrl());
+
+					DigestDao.create(visit.user, result.getUrl(), visit.id,
+							TextUtil.htmlToText(result.getTitle()),
+							getAbstract(result.getUrl(), queryWords),
+							TextUtil.setToString(queryWords), j);
+
+					if (++j > 5) {
+						break;
+					}
 				}
 			} catch (IOException e) {
 				logger.log(Level.WARNING, "Google search failed for "
