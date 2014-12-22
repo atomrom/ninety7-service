@@ -28,6 +28,17 @@ public class AbstractExtractorTest {
 		doTest("http://www.magyarkurir.hu/hirek/72-ora-kompromisszumok-nelkul-iden-is-varjak-fiatalokat-az-onkentes-szolgalatra",
 				"hogy lehet magyar nélkül ÓRÁJA");
 
+		doTest("http://edition.cnn.com/", "cash security simplicity");
+
+		doTest("http://hvg.hu/", "amerikai Victoria Nuland");
+
+		doTest("http://hvg.hu/itthon/20141222_Goodfriendugy_Szijjartot_megint_felhivta",
+				"amerikai Victoria Nuland");
+
+		doTest("http://www.bbc.com/capital/story/20141219-money-the-good-bad-and-better",
+				"rich better start up tech");
+		
+		doTest("http://www.stop.hu/belfold/habony-a-diplomata/1275218/", "belföld botrány egyesült habony kitiltási államok árpád");
 	}
 
 	private static void doTest(String url, String queryWords)
@@ -36,8 +47,8 @@ public class AbstractExtractorTest {
 
 		TextAnalyzer ta = new TextAnalyzer(url);
 		System.out.println("abs:\n"
-				+ ta.extractAbstract(TextUtil
-						.commaSeparatedListToSet(queryWords, Finder.MIN_QUERY_WORD_LENGTH)));
+				+ ta.extractAbstract(TextUtil.commaSeparatedListToSet(
+						queryWords, Finder.MIN_QUERY_WORD_LENGTH)));
 
 		System.out.println();
 	}

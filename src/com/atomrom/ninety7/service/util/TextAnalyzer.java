@@ -160,20 +160,35 @@ public class TextAnalyzer {
 			if (node instanceof Element) {
 				Element element = (Element) node;
 
+				// System.out.println(element.tagName());
+
 				if (!"p".equalsIgnoreCase(element.tagName())
-						&& !"a".equalsIgnoreCase(element.tagName())) {
+						&& !"a".equalsIgnoreCase(element.tagName())
+						&& !"strong".equalsIgnoreCase(element.tagName())
+						&& !"span".equalsIgnoreCase(element.tagName())) {
 					return;
+				}
+
+				float strongMultiplier = 1;
+				if ("strong".equalsIgnoreCase(element.tagName())) {
+					strongMultiplier = 4;
 				}
 
 				final float count = TextUtil.countFoundWords(
 						((Element) node).text(), queryWords);
-				final float elementRelevanceRank = (count * count)
+				final float elementRelevanceRank = strongMultiplier
+						* (count * count)
 						/ (1 + Math.abs(element.text().length()
 								- ABSTRACT_MAX_LENGTH));
 
 				if (elementRelevanceRank > maxElementRelevanceRank) {
 					maxElementRelevanceRank = elementRelevanceRank;
 					mostProbablyRelevantElement = element;
+
+					// System.out.println(element.text());
+					// System.out.println("r:" + elementRelevanceRank);
+					// System.out.println("c:" + count);
+					// System.out.println("l:" + element.text().length());
 				}
 			}
 		}
