@@ -20,6 +20,15 @@
 		<servlet-name>collector</servlet-name>
 		<url-pattern>/collector</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>voter</servlet-name>
+		<servlet-class>com.atomrom.ninety7.service.VoterServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>voter</servlet-name>
+		<url-pattern>/voter</url-pattern>
+	</servlet-mapping>
 
 	<servlet>
 		<servlet-name>digest</servlet-name>

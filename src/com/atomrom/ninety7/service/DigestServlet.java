@@ -19,16 +19,12 @@ import com.google.appengine.labs.repackaged.org.json.JSONException;
 
 @SuppressWarnings("serial")
 public class DigestServlet extends HttpServlet {
-	private static final Logger logger = Logger.getLogger(DigestServlet.class
-			.getName());
-
-	private static final long DAY_IN_MILLIS = 86400000l;
+	private static final Logger logger = Logger.getLogger(DigestServlet.class.getName());
 
 	private String PAGE_NUM = "pageNum";
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
 		UserService userService = UserServiceFactory.getUserService();
 		User currentUser = userService.getCurrentUser();
@@ -42,8 +38,7 @@ public class DigestServlet extends HttpServlet {
 			logger.log(Level.INFO, "User is not logged in.");
 			return;
 		}
-		logger.log(Level.INFO, "Request from user: " + currentUser
-				+ ", pageNum: " + pageNum);
+		logger.log(Level.INFO, "Request from user: " + currentUser + ", pageNum: " + pageNum);
 
 		JSONArray digestItemArray = new JSONArray();
 
@@ -54,8 +49,7 @@ public class DigestServlet extends HttpServlet {
 			try {
 				digestItemArray.put(digestItem.toJson());
 			} catch (JSONException e) {
-				logger.log(Level.SEVERE,
-						"Could not create response Json object.", e);
+				logger.log(Level.SEVERE, "Could not create response Json object.", e);
 			}
 		}
 
@@ -63,8 +57,7 @@ public class DigestServlet extends HttpServlet {
 			try {
 				digestItemArray.write(resp.getWriter());
 			} catch (JSONException e) {
-				logger.log(Level.SEVERE,
-						"Could not create response Json object.", e);
+				logger.log(Level.SEVERE, "Could not create response Json object.", e);
 			}
 		} else {
 			logger.log(Level.INFO, "No digest item has been found.");

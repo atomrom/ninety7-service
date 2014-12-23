@@ -1,5 +1,7 @@
 package com.atomrom.ninety7.service.search;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 
 public class GoogleSearchResults {
@@ -18,7 +20,7 @@ public class GoogleSearchResults {
 		return "ResponseData[" + responseData + "]";
 	}
 
-	static class ResponseData {
+	public static class ResponseData {
 		private List<Result> results;
 
 		private Cursor cursor;
@@ -41,12 +43,17 @@ public class GoogleSearchResults {
 
 	}
 
-	static class Result {
+	public static class Result {
 		private String url;
 		private String title;
 
 		public String getUrl() {
-			return url;
+			try {
+				return URLDecoder.decode(url, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				return url;
+			}
 		}
 
 		public String getTitle() {

@@ -30,8 +30,9 @@ a:active {
 	<iframe src="http://1-dot-ninety7-service.appspot.com/login"></iframe>
 
 	<div>
-		<div id="pageTileDiv"
-			style="background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;">
+		<div id="pageTileDiv" style="background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;">
+
+			<button type="button">Ban</button>
 
 			<h2 id="pageTitle">
 				<a
@@ -39,15 +40,12 @@ a:active {
 					érted?</a>
 			</h2>
 
-			<p id="pageAbstract">Ló-erő, érted? London is the capital city of
-				England. It is the most populous city in the United Kingdom, with a
-				metropolitan area of over 13 million inhabitants.</p>
+			<p id="pageAbstract">Ló-erő, érted? London is the capital city of England. It is the most populous city in the United Kingdom, with a metropolitan area
+				of over 13 million inhabitants.</p>
 
 			<p>
-				A Miniszterelnökséget vezető miniszter szerint a kormányellenes
-				tüntetések szervezésében is aktívan részt vettek az amerikaiak. <br>
-				<a class="read-more boxedlight"
-					href="http://444.hu/2014/12/22/lazar-az-amerikai-nagykovetseg-atvette-a-magyar-ellenzek-szerepet/">Tovább</a>
+				A Miniszterelnökséget vezető miniszter szerint a kormányellenes tüntetések szervezésében is aktívan részt vettek az amerikaiak. <br> <a
+					class="read-more boxedlight" href="http://444.hu/2014/12/22/lazar-az-amerikai-nagykovetseg-atvette-a-magyar-ellenzek-szerepet/">Tovább</a>
 			</p>
 
 		</div>
@@ -55,8 +53,7 @@ a:active {
 
 	<div id="digestBoard"></div>
 
-	<script
-		src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script charset="utf-8">
 		var pageTileDivElement = document.getElementById("pageTileDiv");
 
@@ -76,6 +73,79 @@ a:active {
 											.setAttribute(
 													"style",
 													"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
+									x.id = "div-" + digestItem.url;
+
+									var banButtonElement = document
+											.createElement("button");
+									banButtonElement.id = digestItem.url;
+									banButtonElement.onclick = function(event) {
+										$
+												.post(
+														"http://1-dot-ninety7-service.appspot.com/voter",
+														{
+															operation : "ban",
+															url : event.srcElement.id
+														});
+										var child = document
+												.getElementById("div-"
+														+ event.srcElement.id);
+										child.remove();
+
+										alert("banned:" + event.srcElement.id);
+									}
+									var banButtonElementText = document
+											.createTextNode("Ban");
+									banButtonElement
+											.appendChild(banButtonElementText);
+									x.appendChild(banButtonElement);
+
+									var readButtonElement = document
+											.createElement("button");
+									readButtonElement.id = digestItem.url;
+									readButtonElement.onclick = function(event) {
+										$
+												.post(
+														"http://1-dot-ninety7-service.appspot.com/voter",
+														{
+															operation : "read",
+															url : event.srcElement.id
+														});
+
+										var child = document
+												.getElementById("div-"
+														+ event.srcElement.id);
+										child.remove();
+
+									}
+									var readButtonElementText = document
+											.createTextNode("Read");
+									readButtonElement
+											.appendChild(readButtonElementText);
+									x.appendChild(readButtonElement);
+
+									var delButtonElement = document
+											.createElement("button");
+									delButtonElement.id = digestItem.url;
+									delButtonElement.onclick = function(event) {
+										$
+												.post(
+														"http://1-dot-ninety7-service.appspot.com/voter",
+														{
+															operation : "del",
+															url : event.srcElement.id
+														});
+
+										var child = document
+												.getElementById("div-"
+														+ event.srcElement.id);
+										child.remove();
+
+									}
+									var delButtonElementText = document
+											.createTextNode("Del");
+									delButtonElement
+											.appendChild(delButtonElementText);
+									x.appendChild(delButtonElement);
 
 									var titleElement = document
 											.createElement("h2");
