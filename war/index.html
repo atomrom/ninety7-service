@@ -257,11 +257,46 @@ a:active {
 											.appendChild(archiveButtonElementText);
 									x.appendChild(archiveButtonElement);
 
+									/* var closeButtonElement = document
+											.createElement("button");
+									closeButtonElement.id = digestItem.url;
+									closeButtonElement.onclick = function(event) {
+										$
+												.post(
+														"http://1-dot-ninety7-service.appspot.com/voter",
+														{
+															operation : "close",
+															url : event.srcElement.id
+														});
+
+										var child = document
+												.getElementById(getDigestDivId(event.srcElement.id));
+										child.remove();
+
+									}
+									var closeButtonElementText = document
+											.createTextNode("Close");
+									closeButtonElement
+											.appendChild(closeButtonElementText);
+									x.appendChild(closeButtonElement); */
+
 									$('<button>Close</button>')
 											.appendTo(digestDiv)
 											.on(
 													"click",
 													function(event) {
+														var digestDivelement = event.currentTarget.parentElement;
+														var urlToClose = $(
+																digestDivelement)
+																.data("url");
+														$
+																.post(
+																		"http://1-dot-ninety7-service.appspot.com/voter",
+																		{
+																			operation : "close",
+																			url : urlToClose
+																		});
+
 														$(
 																event.currentTarget.parentElement)
 																.fadeToggle(
