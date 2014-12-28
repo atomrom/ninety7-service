@@ -19,22 +19,26 @@ import org.jsoup.select.NodeVisitor;
 
 public class TextAnalyzer {
 
-	private static final Logger logger = Logger.getLogger(TextAnalyzer.class
-			.getName());
+	private static final Logger logger = Logger.getLogger(TextAnalyzer.class.getName());
 
 	private static final int MIN_WORD_LENGTH = 3;
 	private static final int WORD_COUNT = 5;
 
 	public static final int ABSTRACT_MAX_LENGTH = 280;
 
+	private String url;
 	private String html;
+
+	private int fullAbstractHashCode;
 
 	public TextAnalyzer(String pageUrl) throws IOException {
 		donwloadPage(pageUrl);
 	}
 
 	public void donwloadPage(String pageUrl) throws IOException {
-		html = Jsoup.connect(pageUrl).get().html();
+		url = pageUrl;
+
+		html = Jsoup.connect(url).get().html();
 	}
 
 	public String getHtml() {
@@ -43,6 +47,10 @@ public class TextAnalyzer {
 
 	public String getText() {
 		return Jsoup.parse(html).body().text();
+	}
+
+	public int getFullAbstractHashCode() {
+		return fullAbstractHashCode;
 	}
 
 	public static final Set<String> getKeywords(String text) {
@@ -94,15 +102,18 @@ public class TextAnalyzer {
 		return sortedHistogram;
 	}
 
-	public final String extractAbstract(Set<String> queryWords)
-			throws IOException {
+	public final String extractAbstract(Set<String> queryWords) throws IOException {
 		Element element = findMostRelevantElement(queryWords);
 
 		if (element == null) {
+			fullAbstractHashCode = 0;
 			return "";
 		}
 
-		return TextUtil.trimText(element.text(), ABSTRACT_MAX_LENGTH);
+		String fullAbstract = element.text();
+		fullAbstractHashCode = fullAbstract.hashCode();
+
+		return TextUtil.trimText(fullAbstract, ABSTRACT_MAX_LENGTH);
 	}
 
 	public Element findMostRelevantElement(final Set<String> queryWords) {
@@ -113,8 +124,7 @@ public class TextAnalyzer {
 
 		logger.log(Level.INFO, "queryWords:" + queryWords.toString());
 
-		RelevantElementFinder relevantElementFinder = new RelevantElementFinder(
-				queryWords);
+		RelevantElementFinder relevantElementFinder = new RelevantElementFinder(queryWords);
 		rootElement.traverse(relevantElementFinder);
 
 		if (relevantElementFinder.getMostProbablyRelevantElement() != null) {
@@ -160,9 +170,7 @@ public class TextAnalyzer {
 			if (node instanceof Element) {
 				Element element = (Element) node;
 
-				if (!"p".equalsIgnoreCase(element.tagName())
-						&& !"a".equalsIgnoreCase(element.tagName())
-						&& !"strong".equalsIgnoreCase(element.tagName())
+				if (!"p".equalsIgnoreCase(element.tagName()) && !"a".equalsIgnoreCase(element.tagName()) && !"strong".equalsIgnoreCase(element.tagName())
 						&& !"span".equalsIgnoreCase(element.tagName())) {
 					return;
 				}
@@ -172,12 +180,8 @@ public class TextAnalyzer {
 					strongMultiplier = 4;
 				}
 
-				final float count = TextUtil.countFoundWords(
-						((Element) node).text(), queryWords);
-				final float elementRelevanceRank = strongMultiplier
-						* (count * count)
-						/ (1 + Math.abs(element.text().length()
-								- ABSTRACT_MAX_LENGTH));
+				final float count = TextUtil.countFoundWords(((Element) node).text(), queryWords);
+				final float elementRelevanceRank = strongMultiplier * (count * count) / (1 + Math.abs(element.text().length() - ABSTRACT_MAX_LENGTH));
 
 				if (elementRelevanceRank > maxElementRelevanceRank) {
 					maxElementRelevanceRank = elementRelevanceRank;
@@ -195,5 +199,9 @@ public class TextAnalyzer {
 		public void tail(Node node, int depth) {
 			// empty
 		}
+	}
+
+	public String getUrl() {
+		return url;
 	}
 }

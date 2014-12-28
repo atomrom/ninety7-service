@@ -3,6 +3,9 @@
 
 <head>
 <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="main.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
 <style>
 a:link {
 	color: #FF0000;
@@ -24,6 +27,7 @@ a:active {
 	text-decoration: underline;
 }
 </style>
+
 </head>
 
 <body>
@@ -32,7 +36,11 @@ a:active {
 	<div>
 		<div id="pageTileDiv" style="background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;">
 
-			<button type="button">Ban</button>
+			<button id="settings" type="button" class="block">Ban</button>
+			<div id="menu">
+				<div id="arrow"></div>
+				<a href="#">Block this page</a> <a href="#">Block this page and its sub-pages</a> <a href="#">Block <i>index.hu</i></a>
+			</div>
 
 			<h2 id="pageTitle">
 				<a
@@ -51,10 +59,143 @@ a:active {
 		</div>
 	</div>
 
+
+
+
+
+
+
+
+
 	<div id="digestBoard"></div>
 
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script charset="utf-8">
+		function toggleBanMenu(event, parent) {
+			var menu;
+			var menuElement = $(event.currentTarget.parentElement)
+					.find('#menu')[0];
+
+			if (menuElement == undefined) {
+				var url = $(event.currentTarget.parentElement).data("url");
+
+				var articleLocation = document.createElement("a");
+				articleLocation.href = url;
+
+				var path = articleLocation.pathname + "/*";
+				if (path.length > 20) {
+					path = "..." + path.substring(path.length - 20);
+				}
+
+				menu = $('<div id="menu"><div id="arrow"></div><a id="blockThis" href="#">Block this page</a><a id="blockSite" href="#">Block <i>'
+						+ articleLocation.host + '</i></a></div>');
+				menu.fadeToggle("fast");
+
+				menu.appendTo($(parent).children("#banMenuDiv"));
+
+				attachHandler(menu);
+			} else {
+				menu = $(menuElement);
+
+				menu.fadeToggle("fast", function() {
+					this.remove();
+				});
+			}
+
+			return menu;
+		}
+
+		function attachHandler(menu) {
+			menu
+					.children("a")
+					.on(
+							"click",
+							function(event) {
+								var digestDivelement = event.currentTarget.parentElement.parentElement.parentElement;
+								var urlToBlock = $(digestDivelement)
+										.data("url");
+								var blockingOption = "thisPage";
+								switch (event.currentTarget.id) {
+								case "blockThisAndChildren":
+									blockingOption = "thisPageAndChildren";
+									break;
+								case "blockSite":
+									blockingOption = "site"
+									break;
+								}
+
+								$(digestDivelement).fadeToggle("slow",
+										function() {
+											this.remove();
+										});
+
+								$
+										.post(
+												"http://1-dot-ninety7-service.appspot.com/voter",
+												{
+													operation : "ban",
+													url : urlToBlock,
+													banTarget : blockingOption
+												},
+												function(data, status) {
+													console
+															.log(
+																	'Ban opertaion returned: ',
+																	data);
+													removeDigests(data);
+												});
+
+								console.log("blocking: ", urlToBlock,
+										blockingOption);
+							});
+		}
+
+		function removeDigests(data) {
+			for (j = 0; j < data.length; ++j) {
+				var url = data[j];
+
+				console.log(url, hashCode(url));
+				$("#" + hashCode(url)).fadeToggle("slow", function() {
+					this.remove();
+				});
+			}
+		}
+
+		function hashCode(s) {
+			return s.split("").reduce(function(a, b) {
+				a = ((a << 5) - a) + b.charCodeAt(0);
+				return a & a
+			}, 0);
+		}
+
+		function getDigestDivId(url) {
+			return hashCode(url);
+		}
+
+		$(".block").on("click", function(event) {
+			$("#menu").fadeToggle("fast");
+		});
+
+		$("#menu a")
+				.on(
+						"click",
+						function(event) {
+							$("#menu").fadeToggle("fast");
+							$("#pageTileDiv").fadeToggle("fast");
+							$
+									.post(
+											"http://1-dot-ninety7-service.appspot.com/voter",
+											{
+												operation : "ban",
+												url : "http://444.hu/2014/12/25/az-orosz-buzzfeed-is-orban-amerika-ellenes-mondatain-lovagol/",
+												banTarget : "thisPage"
+											});
+							console
+									.log($(
+											"#"
+													+ event.currentTarget.parentElement.parentElement.id)
+											.data("url"));
+						});
+
 		var pageTileDivElement = document.getElementById("pageTileDiv");
 
 		for (i = 0; i < 5; ++i) {
@@ -68,94 +209,95 @@ a:active {
 								for (j = 0; j < data.length; ++j) {
 									digestItem = data[j];
 
-									var x = document.createElement("div");
-									x
-											.setAttribute(
-													"style",
-													"background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;");
-									x.id = "div-" + digestItem.url;
+									var articleLocation = document
+											.createElement("a");
+									articleLocation.href = digestItem.url;
 
-									var banButtonElement = document
+									var digestDiv = $(
+											'<div/>',
+											{
+												id : getDigestDivId(digestItem.url),
+												style : "background-color: black; color: white; margin: 20px; padding: 20px; width: 300px; float: left; max-height: 500px;"
+											}).appendTo('#digestBoard');
+									digestDiv.data("url", digestItem.url);
+
+									$('<button>Block</button>')
+											.appendTo(digestDiv)
+											.on(
+													"click",
+													function(event) {
+														toggleBanMenu(
+																event,
+																event.currentTarget.parentElement);
+													});
+
+									var x = digestDiv[0];
+
+									var archiveButtonElement = document
 											.createElement("button");
-									banButtonElement.id = digestItem.url;
-									banButtonElement.onclick = function(event) {
+									archiveButtonElement.id = digestItem.url;
+									archiveButtonElement.onclick = function(
+											event) {
 										$
 												.post(
 														"http://1-dot-ninety7-service.appspot.com/voter",
 														{
-															operation : "ban",
-															url : event.srcElement.id
-														});
-										var child = document
-												.getElementById("div-"
-														+ event.srcElement.id);
-										child.remove();
-
-										alert("banned:" + event.srcElement.id);
-									}
-									var banButtonElementText = document
-											.createTextNode("Ban");
-									banButtonElement
-											.appendChild(banButtonElementText);
-									x.appendChild(banButtonElement);
-
-									var readButtonElement = document
-											.createElement("button");
-									readButtonElement.id = digestItem.url;
-									readButtonElement.onclick = function(event) {
-										$
-												.post(
-														"http://1-dot-ninety7-service.appspot.com/voter",
-														{
-															operation : "read",
+															operation : "archive",
 															url : event.srcElement.id
 														});
 
 										var child = document
-												.getElementById("div-"
-														+ event.srcElement.id);
+												.getElementById(getDigestDivId(event.srcElement.id));
 										child.remove();
 
 									}
-									var readButtonElementText = document
-											.createTextNode("Read");
-									readButtonElement
-											.appendChild(readButtonElementText);
-									x.appendChild(readButtonElement);
+									var archiveButtonElementText = document
+											.createTextNode("Archive");
+									archiveButtonElement
+											.appendChild(archiveButtonElementText);
+									x.appendChild(archiveButtonElement);
 
-									var delButtonElement = document
-											.createElement("button");
-									delButtonElement.id = digestItem.url;
-									delButtonElement.onclick = function(event) {
-										$
-												.post(
-														"http://1-dot-ninety7-service.appspot.com/voter",
-														{
-															operation : "del",
-															url : event.srcElement.id
-														});
+									$('<button>Close</button>')
+											.appendTo(digestDiv)
+											.on(
+													"click",
+													function(event) {
+														$(
+																event.currentTarget.parentElement)
+																.fadeToggle(
+																		"slow",
+																		function() {
+																			this
+																					.remove();
+																		});
+													});
 
-										var child = document
-												.getElementById("div-"
-														+ event.srcElement.id);
-										child.remove();
+									$('<div id="banMenuDiv"/>').appendTo(
+											digestDiv);
 
-									}
-									var delButtonElementText = document
-											.createTextNode("Del");
-									delButtonElement
-											.appendChild(delButtonElementText);
-									x.appendChild(delButtonElement);
+									$('<br/>').appendTo(digestDiv);
 
-									var titleElement = document
-											.createElement("h2");
-									var aNode = document.createElement("a");
-									aNode.href = digestItem.url;
-									var titleText = document
-											.createTextNode(digestItem.title);
-									aNode.appendChild(titleText);
-									titleElement.appendChild(aNode);
-									x.appendChild(titleElement);
+									$(
+											'<a/>',
+											{
+												id : 'site',
+												href : articleLocation.protocol
+														+ '//'
+														+ articleLocation.host,
+												text : articleLocation.host,
+												target : "_blank"
+											}).appendTo(digestDiv);
+
+									$('<br/>').appendTo(digestDiv);
+
+									var titleHeading = $('<h2>').appendTo(
+											digestDiv);
+									$('<a/>', {
+										id : 'site',
+										href : digestItem.url,
+										text : digestItem.title,
+										target : "_blank"
+									}).appendTo(titleHeading);
 
 									console.log("title:", digestItem.title);
 									console.log("abstract:",
@@ -181,6 +323,7 @@ a:active {
 
 									document.getElementById("digestBoard")
 											.appendChild(x);
+
 								}
 							});
 		}

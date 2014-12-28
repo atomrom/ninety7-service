@@ -1,13 +1,13 @@
 package com.atomrom.ninety7.service.dao;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.atomrom.ninety7.service.VoterServlet;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
@@ -23,32 +23,94 @@ public class BanDao {
 	private static final String ENTITY_KIND = "Banned";
 
 	private static final String USER = "user";
-	private static final String URL = "url";
+	public static final String HOST = "host";
+	public static final String PATH = "path";
 
-	public static final void create(String url) {
-		logger.log(Level.INFO, "create(" + url + ")");
+	public static final String CHILDREN_SUFFIX = "*";
 
-		UserService userService = UserServiceFactory.getUserService();
-		User user = userService.getCurrentUser();
+	public static enum BanTarget {
+		THIS_PAGE, THIS_PAGE_AND_CHILDREN, SITE
+	}
 
-		Entity entity = new Entity(ENTITY_KIND);
-		entity.setProperty(USER, user);
-		entity.setProperty(URL, url);
+	public static final void create(String url, BanTarget banTarget) {
+		logger.log(Level.INFO, "create(" + url + ", " + banTarget + ")");
 
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-		datastore.put(entity);
+		try {
+			URL urlObject = new URL(url);
+
+			UserService userService = UserServiceFactory.getUserService();
+			User user = userService.getCurrentUser();
+
+			Entity entity = new Entity(ENTITY_KIND);
+			entity.setProperty(USER, user);
+			entity.setProperty(HOST, urlObject.getHost());
+
+			String path = null;
+			switch (banTarget) {
+			case THIS_PAGE:
+				path = urlObject.getFile();
+				break;
+			case THIS_PAGE_AND_CHILDREN:
+				path = urlObject.getPath() + CHILDREN_SUFFIX;
+				break;
+			case SITE:
+			default:
+				path = CHILDREN_SUFFIX;
+			}
+			entity.setProperty(PATH, path);
+
+			DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+			datastore.put(entity);
+
+		} catch (MalformedURLException e) {
+			logger.log(Level.WARNING, "Malformed URL: " + url, e);
+		}
+
 	}
 
 	public static boolean isBanned(User user, String url) {
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-		Filter userFilter = new FilterPredicate("user", FilterOperator.EQUAL, user);
-		Filter urlFilter = new FilterPredicate("url", FilterOperator.EQUAL, url);
+		try {
+			URL urlObject = new URL(url);
 
-		Filter filter = CompositeFilterOperator.and(urlFilter, userFilter);
+			String host = urlObject.getHost();
+			String file = urlObject.getFile();
 
-		Query query = new Query(ENTITY_KIND).setFilter(filter);
+			DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-		return datastore.prepare(query).countEntities(FetchOptions.Builder.withLimit(1)) > 0;
+			Filter userFilter = new FilterPredicate(USER, FilterOperator.EQUAL, user);
+			Filter urlFilter = new FilterPredicate(HOST, FilterOperator.EQUAL, host);
+
+			Filter filter = CompositeFilterOperator.and(urlFilter, userFilter);
+
+			Query query = new Query(ENTITY_KIND).setFilter(filter);
+
+			Iterable<Entity> entities = datastore.prepare(query).asIterable();
+
+			Ban ban = new Ban();
+			for (Entity entity : entities) {
+				ban.updateByEntity(entity);
+				switch (ban.getTarget()) {
+				case THIS_PAGE:
+					if (ban.path.equals(file)) {
+						return true;
+					}
+					break;
+				case THIS_PAGE_AND_CHILDREN:
+					if (file.startsWith(ban.path)) {
+						return true;
+					}
+					break;
+				case SITE:				
+					return true;
+				}
+			}
+
+			return false;
+		} catch (MalformedURLException e) {
+			logger.log(Level.WARNING, "Malformed URL: " + url, e);
+		}
+
+		return false;
 	}
 }

@@ -42,7 +42,7 @@ public class DigestServlet extends HttpServlet {
 
 		JSONArray digestItemArray = new JSONArray();
 
-		List<Digest> digestItems = DigestDao.get(currentUser, pageNum);
+		List<Digest> digestItems = DigestDao.getOpenDigests(currentUser, pageNum);
 		for (Digest digestItem : digestItems) {
 			logger.log(Level.INFO, digestItem.toString());
 

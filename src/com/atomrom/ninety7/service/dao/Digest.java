@@ -11,9 +11,11 @@ public class Digest {
 	public String keywords;
 
 	public long rank;
+	public int fullAbstractHashCode;
 
-	public Digest(String url, String title, String abstr, String keywords,
-			Long rank) {
+	public boolean closed = false;
+
+	public Digest(String url, String title, String abstr, String keywords, Long rank, Integer fullAbstractHashCode) {
 		this.url = url;
 		this.title = title;
 		this.abstr = abstr;
@@ -23,6 +25,12 @@ public class Digest {
 			this.rank = 0;
 		} else {
 			this.rank = rank;
+		}
+
+		if (fullAbstractHashCode == null) {
+			this.fullAbstractHashCode = 0;
+		} else {
+			this.fullAbstractHashCode = fullAbstractHashCode;
 		}
 	}
 
@@ -39,8 +47,8 @@ public class Digest {
 
 	@Override
 	public String toString() {
-		return "Digest [url=" + url + ", title=" + title + ", abstr=" + abstr
-				+ ", keywords=" + keywords + ", rank=" + rank + "]";
+		return "Digest [url=" + url + ", title=" + title + ", abstr=" + abstr + ", keywords=" + keywords + ", rank=" + rank + ", fullAbstractHashCode="
+				+ fullAbstractHashCode + ", closed=" + closed + "]";
 	}
 
 }

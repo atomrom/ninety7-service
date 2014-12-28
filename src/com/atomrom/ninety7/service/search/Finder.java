@@ -1,12 +1,12 @@
 package com.atomrom.ninety7.service.search;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.atomrom.ninety7.service.dao.ArchiveDao;
 import com.atomrom.ninety7.service.dao.BanDao;
 import com.atomrom.ninety7.service.dao.DigestDao;
 import com.atomrom.ninety7.service.dao.Visit;
@@ -60,17 +60,30 @@ public class Finder {
 						continue;
 					}
 
-					if (DigestDao.doesExist(visit.user, result.getUrl())) {
-						logger.log(Level.INFO, "Digest exists: " + result.getUrl());
+					TextAnalyzer textAnalyzer = new TextAnalyzer(result.getUrl());
+					String abstr = textAnalyzer.extractAbstract(queryWords);
+					final int fullAbstractHashCode = textAnalyzer.getFullAbstractHashCode();
 
+					if (ArchiveDao.isArchived(visit.user, result.getUrl(), fullAbstractHashCode)) {
+						logger.log(Level.INFO, "Digest already archived: " + result.getUrl());
 						continue;
 					}
-
-					logger.log(Level.INFO, result.getTitle());
-					logger.log(Level.INFO, result.getUrl());
-
-					DigestDao.create(visit.user, result.getUrl(), visit.id, TextUtil.htmlToText(result.getTitle()), getAbstract(result.getUrl(), queryWords),
-							TextUtil.setToString(queryWords), j);
+					
+					switch (DigestDao.doesExist(visit.user, result.getUrl(), fullAbstractHashCode)) {
+					case YES:
+						logger.log(Level.INFO, "Digest exists: " + result.getUrl());
+						continue;
+					case NO:
+						DigestDao.create(visit.user, result.getUrl(), visit.id, TextUtil.htmlToText(result.getTitle()), abstr,
+								TextUtil.setToString(queryWords), j, fullAbstractHashCode);
+						logger.log(Level.INFO, "New digest: " + result.getTitle() + ", " + result.getUrl());
+						break;
+					case WITH_DIFFERENT_ABSTRACT:
+						DigestDao.update(visit.user, result.getUrl(), visit.id, TextUtil.htmlToText(result.getTitle()), abstr,
+								TextUtil.setToString(queryWords), j, fullAbstractHashCode);
+						logger.log(Level.INFO, "Digest updated: " + result.getTitle() + ", " + result.getUrl());
+						break;
+					}
 
 					if (++j > 5) {
 						break;
@@ -80,21 +93,6 @@ public class Finder {
 				logger.log(Level.WARNING, "Google search failed for " + queryWords, e);
 			}
 		}
-	}
-
-	private String getAbstract(String pageUrl, Set<String> queryWords) {
-		try {
-			String abstr = new TextAnalyzer(pageUrl).extractAbstract(queryWords);
-			logger.log(Level.INFO, "Abstract extracted from " + pageUrl + ": " + abstr);
-
-			return abstr;
-		} catch (MalformedURLException e) {
-			logger.log(Level.WARNING, "Could not retrieve atricle.", e);
-		} catch (IOException e) {
-			logger.log(Level.WARNING, "Could not retrieve atricle.", e);
-		}
-
-		return "";
 	}
 
 	private List<Visit> getVisitedPages() {

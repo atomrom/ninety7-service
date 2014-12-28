@@ -10,4 +10,9 @@
 		<property name="user" direction="asc" />
 		<property name="timestamp" direction="asc" />
 	</datastore-index>
+	
+	<datastore-index kind="DigestItem" ancestor="false" source="manual">
+        <property name="user" direction="asc"/>
+        <property name="url" direction="asc"/>
+    </datastore-index>
 </datastore-indexes>
