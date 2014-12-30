@@ -54,13 +54,13 @@ public class TextAnalyzer {
 	}
 
 	public static final Set<String> getKeywords(String text) {
-		ArrayList<Word> sortedHistogram = getSortedHistogram(text);
+		ArrayList<HistogramEntry> sortedHistogram = getSortedHistogram(text);
 
 		Set<String> queryWords = new TreeSet<String>();
 
 		int maxCount = WORD_COUNT;
 		int i = 0;
-		for (Word histogramWord : sortedHistogram) {
+		for (HistogramEntry histogramWord : sortedHistogram) {
 			if (histogramWord.word.length() > MIN_WORD_LENGTH) {
 				queryWords.add(histogramWord.word);
 				if (++i >= maxCount) {
@@ -72,10 +72,10 @@ public class TextAnalyzer {
 		return queryWords;
 	}
 
-	public static ArrayList<Word> getSortedHistogram(String text) {
+	public static ArrayList<HistogramEntry> getSortedHistogram(String text) {
 		HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
 
-		StringTokenizer tokenizer = new StringTokenizer(text);
+		StringTokenizer tokenizer = new StringTokenizer(text, " \t\n\r\f,.;?!-<>{[(}])/'\"");
 		while (tokenizer.hasMoreTokens()) {
 			String w = tokenizer.nextToken();
 
@@ -85,15 +85,15 @@ public class TextAnalyzer {
 			dictionary.put(w, c);
 		}
 
-		ArrayList<Word> sortedHistogram = new ArrayList<Word>(dictionary.size());
+		ArrayList<HistogramEntry> sortedHistogram = new ArrayList<HistogramEntry>(dictionary.size());
 		for (Entry<String, Integer> entry : dictionary.entrySet()) {
-			sortedHistogram.add(new Word(entry.getKey(), entry.getValue()));
+			sortedHistogram.add(new HistogramEntry(entry.getKey(), entry.getValue()));
 		}
 		dictionary = null;
 
-		Collections.sort(sortedHistogram, new Comparator<Word>() {
+		Collections.sort(sortedHistogram, new Comparator<HistogramEntry>() {
 			@Override
-			public int compare(Word o1, Word o2) {
+			public int compare(HistogramEntry o1, HistogramEntry o2) {
 				return (int) Math.signum(o2.count - o1.count);
 			}
 
@@ -136,18 +136,18 @@ public class TextAnalyzer {
 		return rootElement;
 	}
 
-	static class Word {
-		String word;
-		int count = 1;
+	public static class HistogramEntry {
+		public String word;
+		public int count = 1;
 
-		Word(String word, int count) {
+		HistogramEntry(String word, int count) {
 			this.word = word;
 			this.count = count;
 		}
 
 		@Override
 		public String toString() {
-			return "Word [word=" + word + ", count=" + count + "]";
+			return "HistogramEntry [word=" + word + ", count=" + count + "]";
 		}
 
 	}

@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
-    <servlet>
+	<servlet>
 		<servlet-name>login</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.LoginServlet</servlet-class>
 	</servlet>
@@ -11,7 +11,7 @@
 		<servlet-name>login</servlet-name>
 		<url-pattern>/login</url-pattern>
 	</servlet-mapping>
-    
+
 	<servlet>
 		<servlet-name>collector</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.Ninety7CollectorServlet</servlet-class>
@@ -20,7 +20,7 @@
 		<servlet-name>collector</servlet-name>
 		<url-pattern>/collector</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet>
 		<servlet-name>voter</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.VoterServlet</servlet-class>
@@ -38,7 +38,16 @@
 		<servlet-name>digest</servlet-name>
 		<url-pattern>/digest</url-pattern>
 	</servlet-mapping>
-	
+
+	<servlet>
+		<servlet-name>stat</servlet-name>
+		<servlet-class>com.atomrom.ninety7.service.StatisticsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>stat</servlet-name>
+		<url-pattern>/stat</url-pattern>
+	</servlet-mapping>
+
 	<servlet>
 		<servlet-name>finder</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.FinderServlet</servlet-class>
@@ -47,7 +56,7 @@
 		<servlet-name>finder</servlet-name>
 		<url-pattern>/cron/finder</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet>
 		<servlet-name>digest-housekeeper</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.DigestHousekeeperServlet</servlet-class>
@@ -56,7 +65,7 @@
 		<servlet-name>digest-housekeeper</servlet-name>
 		<url-pattern>/cron/digest-housekeeper</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet>
 		<servlet-name>visit-housekeeper</servlet-name>
 		<servlet-class>com.atomrom.ninety7.service.VisitHousekeeperServlet</servlet-class>
@@ -65,16 +74,10 @@
 		<servlet-name>visit-housekeeper</servlet-name>
 		<url-pattern>/cron/visit-housekeeper</url-pattern>
 	</servlet-mapping>
-	
-	
-	<!-- security-constraint>
-		<web-resource-collection>
-			<web-resource-name>cron</web-resource-name>
-			<url-pattern>/cron/*</url-pattern>
-		</web-resource-collection>
-		<auth-constraint>
-			<role-name>admin</role-name>
-		</auth-constraint>
-	</security-constraint-->
+
+
+	<!-- security-constraint> <web-resource-collection> <web-resource-name>cron</web-resource-name> 
+		<url-pattern>/cron/*</url-pattern> </web-resource-collection> <auth-constraint> 
+		<role-name>admin</role-name> </auth-constraint> </security-constraint -->
 
 </web-app>

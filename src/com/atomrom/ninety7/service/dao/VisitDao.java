@@ -19,8 +19,10 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
 public class VisitDao {
-	private static final Logger logger = Logger.getLogger(VisitDao.class
-			.getName());
+	private static final Logger logger = Logger.getLogger(VisitDao.class.getName());
+
+	public static final String URL = "url";
+	public static final String VISIT_DURATION = "visitDuration";
 
 	public static final String META_KEYWORDS = "metaKeywords";
 	public static final String META_DESCRIPTION = "metaDescription";
@@ -30,41 +32,39 @@ public class VisitDao {
 
 		UserService userService = UserServiceFactory.getUserService();
 		User user = userService.getCurrentUser();
+		
+		if (user == null) {
+			logger.log(Level.WARNING, "User is not authenticated. Visit record won't be created.");
+			return;
+		}
 
 		Entity visitEntity = new Entity("Visit");
 		visitEntity.setProperty("user", user);
 		visitEntity.setProperty("timestamp", System.currentTimeMillis());
-		visitEntity.setProperty("url", visit.url);
-		visitEntity.setProperty("visitDuration", visit.duration);
+		visitEntity.setProperty(URL, visit.url);
+		visitEntity.setProperty(VISIT_DURATION, visit.duration);
 		visitEntity.setProperty("title", new Text(visit.title));
 		visitEntity.setProperty("content", new Text(visit.content));
 		if (visit.metaKeywords != null) {
-			visitEntity
-					.setProperty(META_KEYWORDS, new Text(visit.metaKeywords));
+			visitEntity.setProperty(META_KEYWORDS, new Text(visit.metaKeywords));
 		}
 		if (visit.metaDescription != null) {
-			visitEntity.setProperty(META_DESCRIPTION, new Text(
-					visit.metaDescription));
+			visitEntity.setProperty(META_DESCRIPTION, new Text(visit.metaDescription));
 		}
 
-		DatastoreService datastore = DatastoreServiceFactory
-				.getDatastoreService();
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		datastore.put(visitEntity);
 	}
 
 	public static final List<Visit> findYoungerThan(long maxAgeInMillis) {
 		List<Visit> rv = new ArrayList<Visit>(15);
 
-		Filter filter = new FilterPredicate("timestamp",
-				FilterOperator.GREATER_THAN_OR_EQUAL,
-				System.currentTimeMillis() - maxAgeInMillis);
+		Filter filter = new FilterPredicate("timestamp", FilterOperator.GREATER_THAN_OR_EQUAL, System.currentTimeMillis() - maxAgeInMillis);
 
 		Query query = new Query("Visit").setFilter(filter);
 
-		DatastoreService datastore = DatastoreServiceFactory
-				.getDatastoreService();
-		List<Entity> visitedPages = datastore.prepare(query).asList(
-				FetchOptions.Builder.withLimit(15));
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		List<Entity> visitedPages = datastore.prepare(query).asList(FetchOptions.Builder.withLimit(15));
 
 		for (Entity entity : visitedPages) {
 			rv.add(new Visit(entity));
@@ -76,16 +76,12 @@ public class VisitDao {
 	public void deleteOldItems(long maxAgeInMillis) {
 		logger.log(Level.FINE, "deleteOldEntries(" + maxAgeInMillis + ")");
 
-		Filter filter = new FilterPredicate("timestamp",
-				FilterOperator.LESS_THAN_OR_EQUAL, System.currentTimeMillis()
-						- maxAgeInMillis);
+		Filter filter = new FilterPredicate("timestamp", FilterOperator.LESS_THAN_OR_EQUAL, System.currentTimeMillis() - maxAgeInMillis);
 
 		Query query = new Query("Visit").setFilter(filter);
 
-		DatastoreService datastore = DatastoreServiceFactory
-				.getDatastoreService();
-		List<Entity> visitedPages = datastore.prepare(query).asList(
-				FetchOptions.Builder.withDefaults());
+		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+		List<Entity> visitedPages = datastore.prepare(query).asList(FetchOptions.Builder.withDefaults());
 		int count = 0;
 		for (Entity entity : visitedPages) {
 			logger.log(Level.FINE, "delete:" + entity.getKey());
