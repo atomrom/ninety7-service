@@ -13,15 +13,15 @@ public class TextUtil {
 
 	public static final String TRIMMED_TEXT_SUFFIX = "...";
 
-	public static Set<String> commaSeparatedListToSet(String metaKeywords,
+	public static Set<String> commaSeparatedListToSet(String commaSeparatedList,
 			int minWordLength) {
-		if (metaKeywords == null) {
+		if (commaSeparatedList == null) {
 			return Collections.<String> emptySet();
 		}
 
 		Set<String> rv = new TreeSet<String>();
 
-		StringTokenizer st = new StringTokenizer(metaKeywords,
+		StringTokenizer st = new StringTokenizer(commaSeparatedList,
 				META_KEYWORDS_DELIM);
 		while (st.hasMoreTokens()) {
 			String word = st.nextToken();
@@ -35,6 +35,10 @@ public class TextUtil {
 	}
 
 	public static final String setToString(Set<String> wordSet) {
+		if (wordSet == null) {
+			return null;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		for (String queryWord : wordSet) {
 			sb.append(queryWord);

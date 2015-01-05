@@ -35,7 +35,10 @@ public class Finder {
 
 			Set<String> queryWords = TextUtil.commaSeparatedListToSet(visit.metaKeywords, MIN_QUERY_WORD_LENGTH);
 			if (queryWords.isEmpty()) {
-				queryWords = TextAnalyzer.getKeywords(visit.content);
+				queryWords = TextUtil.commaSeparatedListToSet(visit.extractedKeywords, MIN_QUERY_WORD_LENGTH);
+				if (queryWords.isEmpty()) {
+					continue;
+				}
 			}
 
 			try {
@@ -68,7 +71,7 @@ public class Finder {
 						logger.log(Level.INFO, "Digest already archived: " + result.getUrl());
 						continue;
 					}
-					
+
 					switch (DigestDao.doesExist(visit.user, result.getUrl(), fullAbstractHashCode)) {
 					case YES:
 						logger.log(Level.INFO, "Digest exists: " + result.getUrl());

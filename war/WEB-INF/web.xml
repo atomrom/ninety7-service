@@ -14,7 +14,7 @@
 
 	<servlet>
 		<servlet-name>collector</servlet-name>
-		<servlet-class>com.atomrom.ninety7.service.Ninety7CollectorServlet</servlet-class>
+		<servlet-class>com.atomrom.ninety7.service.CollectorServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>collector</servlet-name>

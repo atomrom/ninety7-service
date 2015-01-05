@@ -24,6 +24,8 @@ public class VisitDao {
 	public static final String URL = "url";
 	public static final String VISIT_DURATION = "visitDuration";
 
+	public static final String EXTRACTED_KEYWORDS = "extractedKeywords";
+	
 	public static final String META_KEYWORDS = "metaKeywords";
 	public static final String META_DESCRIPTION = "metaDescription";
 
@@ -44,7 +46,7 @@ public class VisitDao {
 		visitEntity.setProperty(URL, visit.url);
 		visitEntity.setProperty(VISIT_DURATION, visit.duration);
 		visitEntity.setProperty("title", new Text(visit.title));
-		visitEntity.setProperty("content", new Text(visit.content));
+		visitEntity.setProperty(EXTRACTED_KEYWORDS, new Text(visit.extractedKeywords));
 		if (visit.metaKeywords != null) {
 			visitEntity.setProperty(META_KEYWORDS, new Text(visit.metaKeywords));
 		}

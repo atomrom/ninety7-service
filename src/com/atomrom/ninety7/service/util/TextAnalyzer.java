@@ -54,6 +54,10 @@ public class TextAnalyzer {
 	}
 
 	public static final Set<String> getKeywords(String text) {
+		if (text == null) {
+			return null;
+		}
+		
 		ArrayList<HistogramEntry> sortedHistogram = getSortedHistogram(text);
 
 		Set<String> queryWords = new TreeSet<String>();
